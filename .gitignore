@@ -1,6 +1,6 @@
 # C++ objects and libs
 
-BDM
+build
 *.slo
 *.lo
 *.o
