@@ -1,31 +1,24 @@
 #include <iostream>
-#include <cstdlib>
 #include <opencv2/core/base.hpp>
-#include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/text.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <cv.hpp>
+#include <QtWidgets/QApplication>
+#include "BingTranslator.h"
 
 int main(int argc, char **argv) {
-    cv::Mat img;
-    std::string voca = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.:(),@-";
-    
-    img = cv::imread(argv[1]);
+    QApplication app(argc, argv);
 
-    auto ocr = cv::text::OCRTesseract::create(nullptr, "fra", voca.c_str());
+    BingTranslator translator;
+    QObject::connect(&translator, &BingTranslator::translationSent, [] (std::string res, int id) {
+        std::cout << res << std::endl;
+        std::cout << id << std::endl;
+    });
 
-    std::vector<cv::Rect> rectangles;
-    std::string out;
-    ocr->run(img, out, &rectangles);
+    QObject::connect(&translator, &BingTranslator::translationError, [] (QString messsage) {
+        std::cout << messsage.toStdString() << std::endl;
+    });
 
-    for (auto r : rectangles)
-        cv::rectangle(img, r.tl(), r.br(), cv::Scalar(255, 0, 0));
+    translator.translate("Les chaussettes de la duchesse sont-elles sèches ? Oui, archi-sèches.", "fr", "en", 0);
 
-    std::cout << out << std::endl;
-
-    cv::imshow("res", img);
-    cv::waitKey();
-
-    return 0;
+    return app.exec();
 }

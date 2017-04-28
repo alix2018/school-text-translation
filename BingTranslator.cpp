@@ -6,14 +6,16 @@
 #include <QXmlStreamWriter>
 #include <iostream>
 #include <QtXmlPatterns/QXmlQuery>
+#include <QtCore/QUrlQuery>
 #include "BingTranslator.h"
 
-const QByteArray app_key("BDM e47933adbd504b29909b02e60d6fe1d1");
+const QByteArray app_key("e47933adbd504b29909b02e60d6fe1d1");
 
 BingAuthReply::BingAuthReply(QNetworkReply *reply)
 {
     connect(reply, &QNetworkReply::finished, [=]() {
-        emit tokenSent(reply->readAll());
+        if (!reply->error())
+            emit tokenSent(reply->readAll());
     });
 
     reply->setParent(this);
@@ -29,52 +31,59 @@ BingTranslator::BingTranslator()
     m_last_token_update.start();
 }
 
-void BingTranslator::translate(std::string text, std::string src, std::string dest)
+void BingTranslator::translate(std::string text, std::string src, std::string dest, int id)
 {
     BingAuthReply *authReply = requestToken();
-    authReply->deleteLater();
     connect(authReply, &BingAuthReply::tokenSent, [=](QByteArray token) {
-        QByteArray data;
-        QXmlStreamWriter writer(&data);
-        const QString xmlns("http://schemas.microsoft.com/2003/10/Serialization/Arrays");
-
-        writer.writeStartDocument();
-        writer.writeStartElement("translatearrayrequest");
-        writer.writeTextElement("appid", QString("BDM %1").arg(QString(token)));
-        writer.writeTextElement("from", QString(src.c_str()));
-        writer.writeTextElement("options", "");
-        writer.writeStartElement("texts");
-        writer.writeStartElement("string");
-        writer.writeAttribute("xmlns", xmlns);
-        writer.writeCharacters(QString(src.c_str()));
-        writer.writeEndElement(); // string
-        writer.writeEndElement(); // texts
-        writer.writeTextElement("to", QString(dest.c_str()));
-        writer.writeEndElement(); // translatearrayrequest
-        writer.writeEndDocument();
-
-        std::cout << data.constData() << std::endl;
-
-        QNetworkReply *reply = m_manager.post(
-                QNetworkRequest(QUrl("https://api.microsofttranslator.com/V2/Http.svc/TranslateArray")),
-                data
+        QUrl url = QUrl(
+                QString("https://api.microsofttranslator.com/V2/Http.svc/Translate?from=%1&to=%2&text=%3")
+                        .arg(QString(src.c_str()), QString(dest.c_str()), QString(text.c_str()))
         );
 
+        std::cout << url.toString().toStdString() << std::endl;
+
+        QNetworkRequest request = QNetworkRequest(url);
+        request.setRawHeader("Authorization", QByteArray("Bearer ") + token);
+
+        QNetworkReply *reply = m_manager.get(request);
+
         connect(reply, &QNetworkReply::finished, [=] {
-            QXmlQuery query;
-            QString out;
+            if (!reply->error()) {
+                QXmlQuery query;
+                QString out;
 
-            query.setFocus(reply->readAll());
-            query.setQuery("//translatedtext[1]/text()");
-            query.evaluateTo(&out);
+                QByteArray xmlData = reply->readAll();
+                query.setFocus(xmlData);
+                query.setQuery(
+                        "declare namespace s=\"http://schemas.microsoft.com/2003/10/Serialization/\";"
+                        "//s:string/text()"
+                );
+                query.evaluateTo(&out);
 
-            emit translationSent(out.toStdString());
+                emit translationSent(out.toStdString(), id);
+            }
 
             reply->deleteLater();
         });
 
+        connect(
+                reply,
+                static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error),
+                [=] (QNetworkReply::NetworkError error) {
+                    emit translationError(reply->errorString());
+
+                    reply->deleteLater();
+                }
+        );
+
+        authReply->deleteLater();
     });
 
+    connect(authReply, &BingAuthReply::authError, [this, authReply](QString message) {
+        emit translationError(message);
+
+        authReply->deleteLater();
+    });
 }
 
 BingAuthReply *BingTranslator::requestToken()

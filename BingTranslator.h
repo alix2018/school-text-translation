@@ -21,6 +21,7 @@ public:
 
 signals:
     void tokenSent(QByteArray token);
+    void authError(QString message = "");
 };
 
 class BingTranslator : public QObject
@@ -30,13 +31,14 @@ class BingTranslator : public QObject
 public:
     BingTranslator();
 
-    void translate(std::string text, std::string src = "fr", std::string dest = "en");
+    void translate(std::string text, std::string src, std::string dest, int id);
 
 signals:
-    void translationSent(std::string response);
+    void translationSent(std::string response, int id);
+    void translationError(QString message = "");
 
 private:
-    BingAuthReply * requestToken();
+    BingAuthReply *requestToken();
 
     QByteArray m_token{};
     QTime m_last_token_update{1, 0};
