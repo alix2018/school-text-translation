@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <cstdlib>
 #include <opencv2/core/base.hpp>
@@ -47,7 +48,6 @@ int main(int argc, char **argv)
             findContours(threshCrop, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
 
             // if text color == white, inverse color
-            //cout << (int) threshCrop.at<unsigned char>(contours[0][0].x,contours[0][0].y) << endl;
             if ( (int) threshCrop.at<unsigned char>(contours[0][0].x,contours[0][0].y) != 255 )
             {
                 // create a matrix with all elements equal to 255 for subtraction
@@ -60,12 +60,40 @@ int main(int argc, char **argv)
             // extract background of cropped Mat
             auto m = mean(cropImg, threshCrop);
 
-            // Draw mean reactangle
+            // Draw mean reactangle on result Image
             rectangle(resImg, rectangles[i].tl(), rectangles[i].br(), cv::Scalar(m[0], m[1], m[2]), CV_FILLED);
 
+            /******* Adapt text size to rectangle *******/
+            Size textRectangle = rectangles[i].size();
+
+
+            String text = componentsRect[i];
+            int fontFace = FONT_HERSHEY_SIMPLEX;
+            double fontScale = 20;
+            int thickness = textRectangle.height/16;
+            if (thickness == 0)
+                thickness = 1;
+            int baseline=0;
+
+            Size textSize = getTextSize(text, fontFace, fontScale, thickness, &baseline);
+            while ( textRectangle.height < textSize.height
+                    || textRectangle.width < textSize.width )
+            {
+                fontScale -= 0.1;
+                textSize = getTextSize(text, fontFace, fontScale, thickness, &baseline);
+            }
+
+            // center the text
+            Point textOrg(rectangles[i].tl().x + (rectangles[i].width - textSize.width)/2,
+                          rectangles[i].br().y - (rectangles[i].height - textSize.height)/2);
+
+            // then put the text in the mean rectangle
+            putText(resImg, text, textOrg, fontFace, fontScale,
+                    Scalar::all(255), thickness, 8);
+
             // Draw translate text
-            putText(resImg, componentsRect[i],
-                      Point(rectangles[i].tl().x, rectangles[i].br().y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 0, 0));
+            //putText(resImg, componentsRect[i],
+            //          Point(rectangles[i].tl().x, rectangles[i].br().y), FONT_HERSHEY_COMPLEX, 1, Scalar(0, 0, 0));
 
 
             //cv::imshow("mask", threshCrop);
