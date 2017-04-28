@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     
     img = cv::imread(argv[1]);
 
-    auto ocr = cv::text::OCRTesseract::create(nullptr, "eng", voca.c_str());
+    auto ocr = cv::text::OCRTesseract::create(nullptr, "fra", voca.c_str());
 
     std::vector<cv::Rect> rectangles;
     std::string out;
