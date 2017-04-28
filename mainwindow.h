@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QWindow>
 #include <QDialog>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -29,7 +30,7 @@ public:
 
 private slots:
     void on_pushButton_2_clicked();
-    std::string on_pushButton_clicked();
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;

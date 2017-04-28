@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include <string>
-
-
+#include "readtranslateandwrite.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -20,6 +19,8 @@ void MainWindow::on_pushButton_2_clicked()
 {
     fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QString(),
             tr("Picture Files (*.jpg *.jpeg *.png);;C++ Files (*.cpp *.h)"));
+
+    std::cout << fileName.toStdString() << std::endl;
 
     if (!fileName.isEmpty()) {
         QFile file(fileName);
@@ -41,15 +42,9 @@ void MainWindow::on_pushButton_2_clicked()
     }
 }
 
-std::string MainWindow::on_pushButton_clicked()
+void MainWindow::on_pushButton_clicked()
 {
-    // Envoyer l'image
-    std::cout << fileName.toUtf8().constData() << '\n';
-
-
-    // Fermer le menu
-    QCoreApplication::quit();
-
-    return fileName.toUtf8().constData();
+    std::string tradFile = readTranlateAndWrite(fileName.toStdString());
+    QString newFile = QString::fromStdString(tradFile);
 
 }
