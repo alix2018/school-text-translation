@@ -26,7 +26,7 @@ BingAuthReply::BingAuthReply(QByteArray array)
     emit tokenSent(array);
 }
 
-BingTranslator::BingTranslator()
+BingTranslator::BingTranslator(QObject *parent = Q_NULLPTR) : QObject(parent)
 {
     m_last_token_update.start();
 }
@@ -39,8 +39,6 @@ void BingTranslator::translate(std::string text, std::string src, std::string de
                 QString("https://api.microsofttranslator.com/V2/Http.svc/Translate?from=%1&to=%2&text=%3")
                         .arg(QString(src.c_str()), QString(dest.c_str()), QString(text.c_str()))
         );
-
-        std::cout << url.toString().toStdString() << std::endl;
 
         QNetworkRequest request = QNetworkRequest(url);
         request.setRawHeader("Authorization", QByteArray("Bearer ") + token);

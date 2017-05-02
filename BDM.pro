@@ -6,18 +6,20 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network xml xmlpatterns
 
 TARGET = BDM
 TEMPLATE = app
 
-INCLUDEPATH += /usr/local/include/opencv
-LIBS += -L/usr/local/lib -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_text
+INCLUDEPATH += /usr/include/opencv
+LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lopencv_text
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+        BingTranslator.cpp
 
 HEADERS  += mainwindow.h \
-    readtranslateandwrite.h
+    readtranslateandwrite.h \
+    BingTranslator.h
 
 FORMS    += mainwindow.ui

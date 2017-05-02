@@ -29,7 +29,7 @@ class BingTranslator : public QObject
     Q_OBJECT
 
 public:
-    BingTranslator();
+    BingTranslator(QObject *parent);
 
     void translate(std::string text, std::string src, std::string dest, int id);
 
