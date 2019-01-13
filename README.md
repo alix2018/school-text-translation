@@ -7,7 +7,7 @@ Ce projet utilise [`OpenCV 3`](http://opencv.org/) et [`Qt5`](https://www.qt.io/
 
 D'abord, clonez le dépôt :
 
-    git clone https://github.com/alaenix/BDM.git
+    git clone https://github.com/alix2018/BDM.git
 
 Puis, pour compiler le projet :
 
